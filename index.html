@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="theme-color" content="#e63946">
+<meta name="description" content="Ludow — professional offline Ludo. Pass & Play with friends or play vs hard CPU. Fair random dice, installable PWA.">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Ludow">
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png">
+<link rel="icon" type="image/png" sizes="512x512" href="./icons/icon-512.png">
+<link rel="apple-touch-icon" href="./icons/icon-192.png">
+<title>Ludow — Play Ludo Offline</title>
+<link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="logo"><span class="logo-dice" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span><span class="logo-text">LUD<span class="logo-ow">OW</span></span></div>
+  <nav class="top-actions">
+    <button id="btn-new" class="tbtn" title="New game">＋ New</button>
+    <button id="btn-sound" class="tbtn" title="Sound on/off">🔊 Sound</button>
+    <button id="btn-settings" class="tbtn" title="Settings">⚙ Settings</button>
+    <button id="btn-rules" class="tbtn" title="Rules">? Rules</button>
+    <button id="btn-install" class="tbtn install" title="Install app">⬇ Install</button>
+    <button id="btn-menu" class="tbtn" title="Main menu">☰ Menu</button>
+  </nav>
+</header>
+
+<main>
+  <!-- ============ HOME / SETUP ============ -->
+  <section id="screen-menu" class="screen active">
+    <div class="hero">
+      <div class="hero-dice" aria-hidden="true"><span class="pip p1"></span><span class="pip p2"></span><span class="pip p3"></span><span class="pip p4"></span><span class="pip p5"></span></div>
+      <h1>LUDOW</h1>
+      <p class="tagline">The classic Ludo — offline, fair dice, hard CPU.</p>
+      <p class="hero-sub">Pass &amp; Play with friends on one phone, or take on the CPU. No account, no internet, no rigged dice.</p>
+    </div>
+
+    <div class="card setup-card">
+      <h2>Game setup</h2>
+      <div class="presets" role="group" aria-label="Quick presets">
+        <button class="preset" data-preset="2p">2 Players</button>
+        <button class="preset" data-preset="3p">3 Players</button>
+        <button class="preset" data-preset="4p">4 Players</button>
+        <button class="preset" data-preset="cpu1">👤 vs 🤖 CPU</button>
+        <button class="preset" data-preset="cpu3">👤 vs 3 CPUs</button>
+        <button class="preset" data-preset="cpu2">👤 + 🤖 vs 🤖</button>
+      </div>
+      <div id="player-setup"></div>
+      <div class="setup-row">
+        <label>CPU difficulty
+          <select id="setup-difficulty">
+            <option value="easy">Easy</option>
+            <option value="medium">Medium</option>
+            <option value="hard" selected>Hard</option>
+          </select>
+        </label>
+        <label>Dice mode
+          <select id="setup-dice">
+            <option value="fair" selected>Fair Random (crypto)</option>
+            <option value="classic">Classic Random</option>
+            <option value="lucky">Lucky (5–6)</option>
+            <option value="superlucky">Super Lucky (6)</option>
+            <option value="unlucky">Unlucky / Challenge (1–2)</option>
+            <option value="custom">Custom Luck</option>
+          </select>
+        </label>
+      </div>
+      <p class="hint">2-player games use Red vs Yellow by default — change any colour below to pick your own pair.</p>
+      <button id="btn-start" class="big-btn">▶ Start game</button>
+      <p id="setup-error" class="error" role="alert"></p>
+    </div>
+
+    <div class="features">
+      <div class="feat"><b>👥 Pass &amp; Play</b><span>2–4 friends, one device</span></div>
+      <div class="feat"><b>🤖 Hard CPU</b><span>Captures, blocks &amp; safety-aware AI</span></div>
+      <div class="feat"><b>🎲 Fair dice</b><span>crypto random, verifiable stats</span></div>
+      <div class="feat"><b>📱 Installable</b><span>PWA — works fully offline</span></div>
+    </div>
+  </section>
+
+  <!-- ============ GAME ============ -->
+  <section id="screen-game" class="screen">
+    <div class="game-layout">
+      <div class="board-wrap">
+        <div id="turn-banner"><span id="turn-dot"></span><span id="turn-text">Red's turn</span><span id="turn-sub"></span></div>
+        <div id="board" aria-label="Ludo board"></div>
+        <div id="board-msg" class="board-msg" aria-live="polite"></div>
+      </div>
+
+      <aside class="side">
+        <div class="card dice-card">
+          <div class="dice-head"><span id="dice-player">Red</span><span id="dice-mode-label">Dice: Fair Random</span></div>
+          <div class="dice-row">
+            <button id="dice" class="dice" title="Tap to roll (or press Space)" aria-label="Dice, tap to roll">
+              <span class="pip p1"></span><span class="pip p2"></span><span class="pip p3"></span><span class="pip p4"></span><span class="pip p5"></span><span class="pip p6"></span><span class="pip p7"></span>
+            </button>
+            <div class="dice-side">
+              <button id="btn-roll" class="big-btn roll-btn">🎲 Roll dice</button>
+              <button id="btn-pass" class="ghost-btn" hidden>Pass turn →</button>
+              <div id="roll-hint">Tap the dice, the button, or press Space.</div>
+            </div>
+          </div>
+          <details class="stats">
+            <summary>Dice stats — this session <span id="stats-total"></span></summary>
+            <div id="dice-stats" class="dice-stats"></div>
+            <button id="btn-reset-stats" class="small-btn">Reset stats</button>
+          </details>
+        </div>
+
+        <div class="card score-card">
+          <h3>Scoreboard</h3>
+          <div id="scoreboard"></div>
+        </div>
+
+        <div class="card controls-card">
+          <h3>Controls</h3>
+          <div class="ctl-grid">
+            <button id="btn-restart" class="ctl">↻ Restart</button>
+            <button id="btn-pause" class="ctl">⏸ Pause</button>
+            <button id="btn-quit" class="ctl">🏠 Quit to menu</button>
+            <button id="btn-sound2" class="ctl">🔊 Sound</button>
+            <button id="btn-settings2" class="ctl">⚙ Settings</button>
+            <button id="btn-rules2" class="ctl">? Rules</button>
+          </div>
+        </div>
+
+        <div class="card log-card">
+          <h3>Moves</h3>
+          <ol id="move-log" class="move-log"></ol>
+        </div>
+      </aside>
+    </div>
+  </section>
+</main>
+
+<!-- ============ SETTINGS MODAL ============ -->
+<div id="modal-settings" class="modal" role="dialog" aria-modal="true" aria-labelledby="settings-title" hidden>
+  <div class="modal-box">
+    <h2 id="settings-title">⚙ Settings</h2>
+    <label class="field">Dice mode
+      <select id="set-dice-mode">
+        <option value="fair">Fair Random — crypto, no bias</option>
+        <option value="classic">Classic Random — Math.random</option>
+        <option value="lucky">Lucky — weighted to 5–6</option>
+        <option value="superlucky">Super Lucky — strongly weighted to 6</option>
+        <option value="unlucky">Unlucky / Challenge — weighted to 1–2</option>
+        <option value="custom">Custom Luck — slider below</option>
+      </select>
+    </label>
+    <label class="field">Custom luck <span id="luck-val">0</span>
+      <input type="range" id="set-luck" min="-100" max="100" step="5" value="0">
+      <small>−100 = very unlucky, 0 = fair, +100 = very lucky. Only used in Custom Luck mode.</small>
+    </label>
+    <label class="field">CPU difficulty
+      <select id="set-difficulty"><option value="easy">Easy</option><option value="medium">Medium</option><option value="hard">Hard</option></select>
+    </label>
+    <label class="field">Board theme
+      <select id="set-theme"><option value="classic">Classic</option><option value="dark">Dark</option><option value="neon">Neon</option></select>
+    </label>
+    <label class="field">Animation speed
+      <select id="set-anim"><option value="normal">Normal</option><option value="fast">Fast</option></select>
+    </label>
+    <div class="toggles">
+      <label><input type="checkbox" id="set-sound" checked> Sound effects</label>
+      <label><input type="checkbox" id="set-need6" checked> Need a 6 to leave base</label>
+      <label><input type="checkbox" id="set-extra6" checked> Extra turn on rolling a 6</label>
+      <label><input type="checkbox" id="set-extracap" checked> Extra turn on capture</label>
+      <label><input type="checkbox" id="set-three6" checked> Three 6s in a row forfeits turn</label>
+      <label><input type="checkbox" id="set-block" checked> Block protection (2+ same colour can't be captured)</label>
+      <label><input type="checkbox" id="set-hints" checked> Show move hints (glow movable pieces)</label>
+    </div>
+    <div class="modal-actions"><button id="btn-settings-close" class="big-btn">Done</button></div>
+  </div>
+</div>
+
+<!-- ============ RULES MODAL ============ -->
+<div id="modal-rules" class="modal" role="dialog" aria-modal="true" aria-labelledby="rules-title" hidden>
+  <div class="modal-box">
+    <h2 id="rules-title">How to play Ludo</h2>
+    <div class="rules-body">
+      <p><b>Goal:</b> be the first to bring all 4 of your pieces home to the centre.</p>
+      <ul>
+        <li>Tap <b>Roll dice</b> (or the dice, or Space). You need a <b>6</b> to move a piece out of base (turn this off in Settings).</li>
+        <li>Tap a <b>glowing piece</b> to move it. Pieces move clockwise around the board, then up your coloured home column.</li>
+        <li>You need an <b>exact roll</b> to finish — overshooting is not allowed.</li>
+        <li>Rolling a <b>6</b> gives an extra turn. Capturing an opponent or finishing a piece also gives an extra turn.</li>
+        <li><b>Three 6s in a row</b> forfeits your turn (no move on the third 6).</li>
+        <li>Land on an opponent's piece to <b>capture</b> it — it goes back to its base. <b>★ safe cells</b> (and coloured start cells) cannot be captured on.</li>
+        <li><b>Blocks:</b> two or more of your pieces on one cell cannot be captured, and opponents cannot land there.</li>
+        <li>If you have no legal move, the turn passes automatically.</li>
+        <li><b>Pass &amp; Play:</b> hand the device to the next player. <b>Vs CPU:</b> the CPU moves on its own after a short think.</li>
+        <li><b>Dice:</b> default is Fair Random using your device's cryptographic random generator — no algorithm favours anyone. Change it in Settings; dice stats on the game screen let you check fairness.</li>
+      </ul>
+    </div>
+    <div class="modal-actions"><button id="btn-rules-close" class="big-btn">Got it</button></div>
+  </div>
+</div>
+
+<!-- ============ WINNER MODAL ============ -->
+<div id="modal-winner" class="modal" role="dialog" aria-modal="true" aria-labelledby="winner-title" hidden>
+  <div class="modal-box winner-box">
+    <div id="confetti" aria-hidden="true"></div>
+    <h2 id="winner-title">🏆 Winner!</h2>
+    <p id="winner-text"></p>
+    <div class="modal-actions">
+      <button id="btn-again" class="big-btn">▶ Play again</button>
+      <button id="btn-winner-menu" class="ghost-btn">Main menu</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ INSTALL MODAL ============ -->
+<div id="modal-install" class="modal" role="dialog" aria-modal="true" aria-labelledby="install-title" hidden>
+  <div class="modal-box">
+    <h2 id="install-title">Install Ludow</h2>
+    <p>Add Ludow to your home screen — it then opens full-screen, like a real app, and works fully offline.</p>
+    <ol class="rules-body">
+      <li><b>Android (Chrome):</b> tap ⋮ → <b>Add to Home screen</b> / <b>Install app</b>.</li>
+      <li><b>iPhone (Safari):</b> tap Share → <b>Add to Home Screen</b>.</li>
+      <li><b>Desktop (Chrome/Edge):</b> click the install icon in the address bar.</li>
+    </ol>
+    <div class="modal-actions"><button id="btn-install-close" class="big-btn">Done</button></div>
+  </div>
+</div>
+
+<div id="toast" role="status" aria-live="polite"></div>
+<script src="./app.js"></script>
+</body>
+</html>
